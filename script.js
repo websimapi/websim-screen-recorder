@@ -198,7 +198,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         drawVideo();
-        return cropCanvas.captureStream();
+        
+        // Get the canvas stream and add audio track from original stream if available
+        const canvasStream = cropCanvas.captureStream();
+        
+        // If original stream has audio tracks, add them to the canvas stream
+        if (originalStream) {
+            const audioTracks = originalStream.getAudioTracks();
+            if (audioTracks.length > 0) {
+                audioTracks.forEach(track => {
+                    canvasStream.addTrack(track);
+                });
+            }
+        }
+        
+        return canvasStream;
     }
 
     // Function to reset crop
@@ -231,35 +245,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startRecording(streamToRecord) {
-        // Create MediaRecorder
-        mediaRecorder = new MediaRecorder(streamToRecord);
-
-        // Handle data available event
-        mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-                recordedChunks.push(event.data);
+        try {
+            // Create MediaRecorder with supported options
+            const options = {mimeType: 'video/webm;codecs=vp9,opus'};
+            mediaRecorder = new MediaRecorder(streamToRecord, options);
+            
+            // Handle data available event
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+    
+            // Handle recording stopped
+            mediaRecorder.onstop = () => {
+                downloadBtn.disabled = false;
+    
+                // If we have the original stream, stop all tracks
+                if (originalStream) {
+                    originalStream.getTracks().forEach(track => track.stop());
+                }
+    
+                videoElement.srcObject = null;
+    
+                // Show the recorded video for preview
+                const recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                videoElement.src = URL.createObjectURL(recordedBlob);
+                videoElement.controls = true;
+            };
+    
+            // Start recording
+            mediaRecorder.start();
+        } catch (error) {
+            console.error('MediaRecorder error:', error);
+            // Fallback to basic recording without specific codecs
+            try {
+                mediaRecorder = new MediaRecorder(streamToRecord);
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                mediaRecorder.onstop = () => {
+                    downloadBtn.disabled = false;
+                    if (originalStream) {
+                        originalStream.getTracks().forEach(track => track.stop());
+                    }
+                    videoElement.srcObject = null;
+                    const recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                    videoElement.src = URL.createObjectURL(recordedBlob);
+                    videoElement.controls = true;
+                };
+                mediaRecorder.start();
+            } catch (fallbackError) {
+                console.error('MediaRecorder fallback error:', fallbackError);
+                alert('Your browser does not support the required recording features.');
+                resetUI();
             }
-        };
+        }
+    }
 
-        // Handle recording stopped
-        mediaRecorder.onstop = () => {
-            downloadBtn.disabled = false;
-
-            // If we have the original stream, stop all tracks
-            if (originalStream) {
-                originalStream.getTracks().forEach(track => track.stop());
-            }
-
-            videoElement.srcObject = null;
-
-            // Show the recorded video for preview
-            const recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
-            videoElement.src = URL.createObjectURL(recordedBlob);
-            videoElement.controls = true;
-        };
-
-        // Start recording
-        mediaRecorder.start();
+    // Helper function to reset UI after recording errors
+    function resetUI() {
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        cropBtn.disabled = true;
+        downloadBtn.disabled = true;
     }
 
     // Start recording
