@@ -165,9 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         cropSettings.x, cropSettings.y, cropSettings.width, cropSettings.height,
                         0, 0, cropCanvas.width, cropCanvas.height
                     );
-                    if (cropActive) {
-                        requestAnimationFrame(updateCroppedPreview);
-                    }
+                }
+                if (cropActive) {
+                    requestAnimationFrame(updateCroppedPreview);
                 }
             }
             
@@ -191,9 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     cropSettings.x, cropSettings.y, cropSettings.width, cropSettings.height, // Source rectangle
                     0, 0, cropCanvas.width, cropCanvas.height // Destination rectangle
                 );
-                if (cropActive) {
-                    requestAnimationFrame(drawVideo);
-                }
+            }
+            if (cropActive) {
+                requestAnimationFrame(drawVideo);
             }
         }
 
