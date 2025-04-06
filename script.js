@@ -152,13 +152,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             stopRecording();
             startCroppedRecording();
+        } else {
+            // Start showing the cropped preview
+            videoElement.style.display = 'none';
+            cropCanvas.style.display = 'block';
+            const ctx = cropCanvas.getContext('2d');
+            
+            function updateCroppedPreview() {
+                if (cropActive && videoElement.videoWidth) {
+                    ctx.drawImage(
+                        videoElement,
+                        cropSettings.x, cropSettings.y, cropSettings.width, cropSettings.height,
+                        0, 0, cropCanvas.width, cropCanvas.height
+                    );
+                    if (cropActive) {
+                        requestAnimationFrame(updateCroppedPreview);
+                    }
+                }
+            }
+            
+            updateCroppedPreview();
         }
     }
 
     // Function to create a cropped stream
     function createCroppedStream() {
         const ctx = cropCanvas.getContext('2d');
-        const videoRect = videoElement.getBoundingClientRect();
+        
+        // Ensure canvas is visible
+        videoElement.style.display = 'none';
+        cropCanvas.style.display = 'block';
 
         // Draw the cropped region of the video to the canvas
         function drawVideo() {
@@ -168,7 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     cropSettings.x, cropSettings.y, cropSettings.width, cropSettings.height, // Source rectangle
                     0, 0, cropCanvas.width, cropCanvas.height // Destination rectangle
                 );
-                requestAnimationFrame(drawVideo);
+                if (cropActive) {
+                    requestAnimationFrame(drawVideo);
+                }
             }
         }
 
@@ -182,6 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cropOverlay.classList.add('hidden');
         resetCropBtn.disabled = true;
         cropBtn.disabled = false;
+        
+        // Show the video element and hide the canvas
+        videoElement.style.display = 'block';
+        cropCanvas.style.display = 'none';
 
         // If recording, restart with the original stream
         if (mediaRecorder && mediaRecorder.state === 'recording') {

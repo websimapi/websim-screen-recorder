@@ -71,6 +71,13 @@ video {
     display: block;
 }
 
+#cropCanvas {
+    width: 100%;
+    height: auto;
+    display: none;
+    background-color: #000;
+}
+
 /* Crop overlay styles */
 #crop-overlay {
     position: absolute;
