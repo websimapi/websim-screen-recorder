@@ -15,12 +15,29 @@
             <button id="downloadBtn" class="btn" disabled>Download</button>
         </div>
         <div class="video-container">
+            <div id="crop-overlay" class="hidden">
+                <div id="crop-box">
+                    <div class="resize-handle top-left"></div>
+                    <div class="resize-handle top-right"></div>
+                    <div class="resize-handle bottom-left"></div>
+                    <div class="resize-handle bottom-right"></div>
+                </div>
+            </div>
             <video id="preview" autoplay playsinline muted></video>
+            <canvas id="cropCanvas" style="display:none;"></canvas>
+        </div>
+        <div class="crop-controls">
+            <button id="cropBtn" class="btn" disabled>Enable Crop</button>
+            <button id="applyCropBtn" class="btn" disabled>Apply Crop</button>
+            <button id="resetCropBtn" class="btn" disabled>Reset Crop</button>
         </div>
         <div class="instructions">
             <h2>Instructions:</h2>
             <ol>
                 <li>Click "Start Recording" and select a screen or window to capture</li>
+                <li>If needed, click "Enable Crop" to select a region to record</li>
+                <li>Resize the crop box by dragging the corners</li>
+                <li>Click "Apply Crop" to confirm your selection</li>
                 <li>Click "Stop Recording" when you're done</li>
                 <li>Click "Download" to save your recording</li>
             </ol>
